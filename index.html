@@ -34,9 +34,10 @@ h2{margin:0 0 10px;font-size:24px}
 .pos{color:#2e8b57}.neg{color:#c0392b}
 .felt{background:radial-gradient(ellipse at 50% 30%,#2c7a54,#1b5238 75%);border:6px solid #5a3a22;border-radius:22px;padding:14px 0 14px;box-shadow:inset 0 0 30px rgba(0,0,0,.45)}
 #board{position:relative;margin:0 auto}
-.pc{position:absolute;background:#fffdf6;border-radius:8%;box-shadow:0 2px 4px rgba(0,0,0,.45);color:#1b1b1b;font-size:calc(var(--cw)*.3);user-select:none;cursor:pointer;overflow:hidden}
-.pc.red{color:#c0392b}
+.pc{position:absolute;background:#fff;border-radius:8%;box-shadow:0 2px 4px rgba(0,0,0,.45);color:#1b1b1b;font-size:calc(var(--cw)*.3);user-select:none;cursor:pointer;overflow:hidden}
+.pc.red{color:#d00000}
 .pc .rk{position:absolute;left:8%;top:4%;line-height:1;font-weight:700;text-align:center}
+.pc svg.face{position:absolute;inset:0;width:100%;height:100%;display:block}
 .pc .big{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:calc(var(--cw)*.55);padding-top:25%}
 .pc.dn{background:repeating-linear-gradient(45deg,#7a2f55 0 6px,#5e2142 6px 12px);border:3px solid #fffdf6}
 .pc.cv:not(.dn){filter:brightness(.8)}
@@ -268,7 +269,26 @@ function render(){
   $("#acts").innerHTML=g.over?`<button class="btn" data-act="deal">Deal a new hand</button>`:`<button class="btn alt" data-act="undo" ${H.length?"":"disabled"}>↶ Undo · ${m(UNDO)}</button><button class="btn alt" data-act="finish">Redeal · ${g.practice?"free":"−"+m(PEN)}</button>`;
 }
 const isRed=c=>c.suit=="♥"||c.suit=="♦";
-const face=c=>`<span class="rk">${RK[c.rank]}<br>${c.suit}</span><span class="big">${c.suit}</span>`;
+const SUITP={"♠":'<path d="M0-10C-2-6-10-2-10 3C-10 7-4 8-1 4C-1.5 7-2 9-4 10L4 10C2 9 1.5 7 1 4C4 8 10 7 10 3C10-2 2-6 0-10Z"/>',"♥":'<path d="M0 9C-2 7-10 2-10-3C-10-8-3-9 0-4C3-9 10-8 10-3C10 2 2 7 0 9Z"/>',"♦":'<path d="M0-10L7.5 0L0 10L-7.5 0Z"/>',"♣":'<circle cx="0" cy="-5.2" r="4.6"/><circle cx="-5.4" cy="2.4" r="4.6"/><circle cx="5.4" cy="2.4" r="4.6"/><path d="M-1 1L-3.5 10L3.5 10L1 1Z"/>'};
+const pip=(s,x,y,k,f)=>`<g transform="translate(${x} ${y})${f?" rotate(180)":""} scale(${k})">${SUITP[s]}</g>`;
+const PX={L:33,C:50,R:67},PY={t:27,h:38,a:48.5,m:69,b:89.5,g:100,u:111};
+const LAY={2:["Ct","Cu"],3:["Ct","Cm","Cu"],4:["Lt","Rt","Lu","Ru"],5:["Lt","Rt","Cm","Lu","Ru"],6:["Lt","Rt","Lm","Rm","Lu","Ru"],7:["Lt","Rt","Ca","Lm","Rm","Lu","Ru"],8:["Lt","Rt","Ca","Lm","Rm","Cb","Lu","Ru"],9:["Lt","Rt","La","Ra","Cm","Lb","Rb","Lu","Ru"],10:["Lt","Rt","Ch","La","Ra","Lb","Rb","Cg","Lu","Ru"]};
+const YEL="#ffd91a",SKN="#ffe3c4",LN='stroke="#111"';
+const bodyF=a=>`<path d="M3 59L5 45Q9 37 27 36Q45 37 49 45L51 59Z" fill="${a}" ${LN} stroke-width=".9"/><path d="M5 45L9 59M49 45L45 59" stroke="${YEL}" stroke-width="2"/><path d="M17 37L27 52L37 37Z" fill="${YEL}" ${LN} stroke-width=".7"/><rect x="4" y="53" width="46" height="4" fill="${YEL}" ${LN} stroke-width=".6"/><circle cx="27" cy="55" r="1.6" fill="#111"/>`;
+const headF=`<ellipse cx="27" cy="24" rx="9" ry="11" fill="${SKN}" ${LN} stroke-width=".9"/><circle cx="23" cy="22" r="1.2" fill="#111"/><circle cx="31" cy="22" r="1.2" fill="#111"/><path d="M20.5 19.2L25 18.8M29 18.8L33.5 19.2" ${LN} stroke-width=".8"/><path d="M27 23L25.8 28L28.2 28" fill="none" ${LN} stroke-width=".7"/>`;
+const COURT={
+13:a=>bodyF(a)+`<path d="M17 14L16 30L18.5 27Z M37 14L38 30L35.5 27Z" fill="#bbb" ${LN} stroke-width=".5"/>`+headF+`<path d="M18.5 27Q18 42 27 46Q36 42 35.5 27Q27 33 18.5 27Z" fill="#fff" ${LN} stroke-width=".8"/><path d="M20 28Q27 25 34 28Q27 30.5 20 28Z" fill="#999" ${LN} stroke-width=".6"/><path d="M16.5 15L16 3L21.5 8.5L27 1L32.5 8.5L38 3L37.5 15Z" fill="${YEL}" ${LN} stroke-width=".9"/><rect x="16.5" y="12" width="21" height="3.5" fill="${a}" ${LN} stroke-width=".6"/><circle cx="27" cy="5.5" r="1.3" fill="${a}"/>`,
+12:a=>bodyF(a)+`<path d="M16 12Q7 30 10 46L22 38L19 20Z M38 12Q47 30 44 46L32 38L35 20Z" fill="${YEL}" ${LN} stroke-width=".8"/>`+headF+`<path d="M23.5 29Q27 32 30.5 29Q27 27.8 23.5 29Z" fill="#d81010"/><path d="M19 38Q27 46 35 38" fill="none" stroke="#fff" stroke-width="1.6" stroke-dasharray="1.2 1.2"/><path d="M19 14L19.5 6L23.5 10L27 3.5L30.5 10L34.5 6L35 14Z" fill="${YEL}" ${LN} stroke-width=".8"/><rect x="19" y="11.5" width="16" height="2.8" fill="${a}" ${LN} stroke-width=".5"/>`,
+11:a=>bodyF(a)+`<path d="M16 16Q13 30 17 33L20 24Z M38 16Q41 30 37 33L34 24Z" fill="#b8741a" ${LN} stroke-width=".7"/>`+headF+`<path d="M24 29Q27 30.5 30 29" fill="none" ${LN} stroke-width=".8"/><path d="M15.5 17Q27-4 38.5 17Z" fill="${a}" ${LN} stroke-width=".9"/><path d="M15.5 17H38.5" ${LN} stroke-width="1.2"/><path d="M32 6Q47-2 46 15Q42 7 33 11Z" fill="${YEL}" ${LN} stroke-width=".8"/>`};
+const faceMarkup=(c,col)=>{const s=c.suit,r=c.rank,red=s=="♥"||s=="♦",acc=red?"#d81010":"#1a2fc0";
+const R=RK[r],ix=`<text x="12" y="26" font-size="27" ${R=="10"?'textLength="22" lengthAdjust="spacingAndGlyphs" ':""}font-weight="700" text-anchor="middle" font-family="Tahoma,'MS Sans Serif',Verdana,Arial,sans-serif">${R}</text>${pip(s,12,43,.85,0)}`;
+let b;
+if(r>=11)b=`<rect x="25" y="10" width="50" height="118" fill="#fff" stroke="#111" stroke-width="1.1"/><g transform="translate(25 10) scale(.926 1)">${COURT[r](acc)}</g><g transform="rotate(180 50 69)"><g transform="translate(25 10) scale(.926 1)">${COURT[r](acc)}</g></g>${pip(s,34,23,.8,0)}${pip(s,66,115,.8,1)}`;
+else if(r==1)b=pip(s,50,69,1.6,0);
+else b=LAY[r].map(t=>{const y=PY[t[1]];return pip(s,PX[t[0]],y,r>=9?.8:.9,y>69)}).join("");
+return `<svg xmlns="http://www.w3.org/2000/svg" class="face" width="100" height="138" viewBox="0 0 100 138" fill="${col}" aria-hidden="true"><rect x=".5" y=".5" width="99" height="137" rx="7" fill="#fff" stroke="#222" stroke-width=".8"/>${ix}<g transform="rotate(180 50 69)">${ix}</g>${b}</svg>`};
+const face=c=>faceMarkup(c,"currentColor");
+const CIMG={};const cardImg=c=>{const k=c.r+c.s;if(!CIMG[k]){const im=new Image();im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(faceMarkup({rank:c.r,suit:c.s},(c.s=="♥"||c.s=="♦")?"#d00000":"#111"));CIMG[k]=im}return CIMG[k]};
 
 /* ---------- game logic ---------- */
 const covered=c=>g.cards.some(o=>!o.gone&&o.row==c.row+1&&Math.abs(o.x-c.x)==.5);
@@ -342,9 +362,9 @@ function hdr2(){const it=(a,l,c)=>`<button data-act="${a}"><span class="ck">${c?
 const closeMenus=()=>document.querySelectorAll(".mi.open").forEach(x=>x.classList.remove("open"));
 let cas;
 function killCas(){if(cas){cancelAnimationFrame(cas.raf);cas.cv.remove();cas=null}}
-function cascade(){killCas();const cv=document.createElement("canvas"),W=cv.width=innerWidth,H=cv.height=innerHeight;cv.id="cas";document.body.append(cv);const x=cv.getContext("2d"),cw=Math.min(70,W/8),ch=cw*1.4,q=[],live=[];SU.forEach(s=>{for(let r=13;r>=1;r--)q.push([r,s])});let f=0;cas={cv,raf:0};
+function cascade(){killCas();const cv=document.createElement("canvas"),W=cv.width=innerWidth,H=cv.height=innerHeight;cv.id="cas";document.body.append(cv);const x=cv.getContext("2d"),cw=Math.min(70,W/8),ch=cw*1.38,q=[],live=[];SU.forEach(s=>{for(let r=13;r>=1;r--)q.push([r,s])});q.forEach(([r,s])=>cardImg({r,s}));let f=0;cas={cv,raf:0};
 const step=()=>{if(!cas||cas.cv!==cv)return;if(f%12==0&&q.length){const[r,s]=q.shift();live.push({r,s,x:W*(.1+.2*((f/12%4)|0)),y:H*.2,vx:(f%24?1:-1)*(2+Math.random()*4),vy:-Math.random()*4})}
-live.forEach(c=>{c.vy+=.5;c.x+=c.vx;c.y+=c.vy;if(c.y+ch>H){c.y=H-ch;c.vy*=-.85}x.fillStyle="#fff";x.fillRect(c.x,c.y,cw,ch);x.strokeStyle="#000";x.lineWidth=1;x.strokeRect(c.x+.5,c.y+.5,cw-1,ch-1);x.fillStyle=c.s=="♥"||c.s=="♦"?"#c00":"#000";x.font=`bold ${cw*.32}px "Times New Roman",serif`;x.fillText(RK[c.r]+c.s,c.x+4,c.y+cw*.34);x.font=`${cw*.6}px "Times New Roman",serif`;x.fillText(c.s,c.x+cw*.2,c.y+ch*.78)});
+live.forEach(c=>{c.vy+=.5;c.x+=c.vx;c.y+=c.vy;if(c.y+ch>H){c.y=H-ch;c.vy*=-.85}const im=cardImg(c);if(im.complete&&im.naturalWidth)x.drawImage(im,c.x,c.y,cw,ch)});
 for(let i=live.length-1;i>=0;i--)if(live[i].x<-cw||live[i].x>W)live.splice(i,1);
 f++;if(q.length||live.length)cas.raf=requestAnimationFrame(step);else setTimeout(()=>{if(cas&&cas.cv===cv)killCas()},800)};step()}
 const bkcode=()=>"TP98:"+btoa(unescape(encodeURIComponent(JSON.stringify(S))));
